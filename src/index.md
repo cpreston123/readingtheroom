@@ -5,7 +5,7 @@ toc: false
 <!-- Title -->
 <div class="hero">
   <h1>Reading The Room</h1>
-  <h2>Presidential Communication and Public Approval</h2>
+  <h2>Exploring the intersection of social media and politics.</h2>
 </div>
 
 <!-- Tweet Sentiment Analysis -->
