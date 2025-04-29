@@ -5,11 +5,12 @@ toc: false
 <!-- Title -->
 <div class="hero">
   <h1>Reading The Room</h1>
-  <h2>subtitle</h2>
+  <h2>Presidential Communication and Public Approval</h2>
 </div>
 
-## The following visual shows all of Obama's Tweets during his 2013-2017 term and all of Trump's tweets during his 2017-2021 term.
-Each tweet is classified using [NLP](https://medium.com/@rslavanyageetha/vader-a-comprehensive-guide-to-sentiment-analysis-in-python-c4f1868b0d2e) based on its overall sentiment. The model (VADER) rates each tweet on a scale of -1 (very negative) to 1 (very positive). This scale is represented on the vertical axis.
+<!-- Tweet Sentiment Analysis -->
+<h2>Tweet Sentiment Analysis</h2>
+<p>Each tweet is classified using <a href="https://medium.com/@rslavanyageetha/vader-a-comprehensive-guide-to-sentiment-analysis-in-python-c4f1868b0d2e">NLP</a> based on its overall sentiment. The model (VADER) rates each tweet on a scale of -1 (very negative) to 1 (very positive).</p>
 
 <!-- Main Visualization -->
 <div class="grid grid-cols-1" style="grid-auto-rows: 630px;">
@@ -50,13 +51,34 @@ async function loadTweets() {
   return tweets;
 }
 
-let tweetDataCache;
+async function loadApprovalData() {
+  const obamaData = await FileAttachment("data/obama_approval_cleaned.csv").csv({typed: true});
+  const trumpData = await FileAttachment("data/trump_approval_cleaned.csv").csv({typed: true});
+
+  obamaData.forEach(d => {
+    d.date = new Date(d.Date);
+    d.approve = d.Approve;
+    d.president = "Obama";
+  });
+
+  trumpData.forEach(d => {
+    d.date = new Date(d.Date);
+    d.approve = d["% Approve"];
+    d.president = "Trump";
+  });
+
+  return [...obamaData, ...trumpData];
+}
+
+// CACHES
+let tweetDataCache, approvalDataCache;
+
 async function getTweetData() {
   if (!tweetDataCache) {
     const tweets = await loadTweets();
     const obamaTweets = tweets.filter(d => d.source.toLowerCase() === "obama");
     const trumpTweets = tweets.filter(d => d.source.toLowerCase() === "trump");
-    
+
     tweetDataCache = {
       allTweets: tweets,
       obamaCount: obamaTweets.length,
@@ -68,8 +90,29 @@ async function getTweetData() {
   return tweetDataCache;
 }
 
+async function getApprovalData() {
+  if (!approvalDataCache) {
+    const data = await loadApprovalData();
+    const obamaData = data.filter(d => d.president === "Obama");
+    const trumpData = data.filter(d => d.president === "Trump");
+
+    approvalDataCache = {
+      allData: data,
+      obamaAvg: d3.mean(obamaData, d => d.approve),
+      trumpAvg: d3.mean(trumpData, d => d.approve),
+      obamaMinDate: d3.min(obamaData, d => d.date),
+      obamaMaxDate: d3.max(obamaData, d => d.date),
+      trumpMinDate: d3.min(trumpData, d => d.date),
+      trumpMaxDate: d3.max(trumpData, d => d.date)
+    };
+  }
+  return approvalDataCache;
+}
+
 async function tweetScatterPlot() {
   const { allTweets } = await getTweetData();
+  const { allData } = await getApprovalData();
+
 
   const obamaMonthlyData = d3.rollups(
     allTweets.filter(d => d.source.toLowerCase() === "obama"),
@@ -80,6 +123,26 @@ async function tweetScatterPlot() {
   const trumpMonthlyData = d3.rollups(
     allTweets.filter(d => d.source.toLowerCase() === "trump"),
     v => d3.mean(v, d => d.compound),
+    d => d3.utcMonth.floor(d.date)
+  ).map(([month, avg]) => ({ month, avg, source: "Trump" }));
+  
+  const obamaApprovalMonthlyData = d3.rollups(
+    allData.filter(d =>
+      d.president.toLowerCase() === "obama" &&
+      d.date >= new Date("2013-01-21") &&
+      d.date <= new Date("2017-01-16")
+    ),
+    v => d3.mean(v, d => d.approve),
+    d => d3.utcMonth.floor(d.date)
+  ).map(([month, avg]) => ({ month, avg, source: "Obama" }));
+
+  const trumpApprovalMonthlyData = d3.rollups(
+    allData.filter(d =>
+      d.president.toLowerCase() === "trump" &&
+      d.date >= new Date("2017-01-20") &&
+      d.date <= new Date("2021-01-04")
+    ),
+    v => d3.mean(v, d => d.approve),
     d => d3.utcMonth.floor(d.date)
   ).map(([month, avg]) => ({ month, avg, source: "Trump" }));
 
@@ -104,6 +167,28 @@ async function tweetScatterPlot() {
 
   // Combine both datasets
   const monthlyDataFilled = [...obamaMonthlyDataFilled, ...trumpMonthlyDataFilled];
+
+  const obamaApprovalMonthlyFilled = fillMissingMonths(
+    obamaApprovalMonthlyData,
+    d3.min(obamaApprovalMonthlyData, d => d.month),
+    d3.max(obamaApprovalMonthlyData, d => d.month),
+    "Obama"
+  );
+
+  const trumpApprovalMonthlyFilled = fillMissingMonths(
+    trumpApprovalMonthlyData,
+    d3.min(trumpApprovalMonthlyData, d => d.month),
+    d3.max(trumpApprovalMonthlyData, d => d.month),
+    "Trump"
+  );
+
+  const normalizeApproval = data => data.map(d => ({
+    ...d,
+    norm: (d.avg - 30) / 30 - 1
+  }));
+
+const obamaApprovalNorm = normalizeApproval(obamaApprovalMonthlyFilled);
+const trumpApprovalNorm = normalizeApproval(trumpApprovalMonthlyFilled);
 
   // Create a tooltip element
   const tooltip = document.createElement("div");
@@ -155,6 +240,33 @@ async function tweetScatterPlot() {
         strokeWidth: 4,
         curve: "natural",
       }),
+      Plot.line(obamaApprovalNorm, {
+        x: "month",
+        y: "norm",
+        stroke: "#ffffff",
+        strokeDasharray: "5,5",
+        strokeWidth: 2,
+        curve: "natural",
+      }),
+      Plot.line(trumpApprovalNorm, {
+        x: "month",
+        y: "norm",
+        stroke: "#ffffff",
+        strokeDasharray: "5,5",
+        strokeWidth: 2,
+        curve: "natural",
+      }),
+      Plot.axisY({ anchor: "left", label: "Sentiment Score", ticks: 5 }),
+      Plot.axisY({
+        anchor: "right",
+        tickValues: d3.range(0, 110, 10),
+        tickFormat: d => d,
+        label: "Approval Rating (%)",
+        labelAnchor: "center",
+        tickSize: 4,
+        ticks: 10,
+        transform: d => (d - 60) / 30,
+      }),
     ],
   });
 
@@ -204,6 +316,7 @@ async function tweetScatterPlot() {
   return plot;
 }
 ```
+
 <style>
 
 .hero {
@@ -246,4 +359,3 @@ async function tweetScatterPlot() {
 }
 
 </style>
-
