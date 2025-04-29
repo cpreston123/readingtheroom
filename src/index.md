@@ -9,6 +9,7 @@ toc: false
 </div>
 
 ## The following visual shows all of Obama's Tweets during his 2013-2017 term and all of Trump's tweets during his 2017-2021 term.
+Each tweet is classified using [NLP](https://medium.com/@rslavanyageetha/vader-a-comprehensive-guide-to-sentiment-analysis-in-python-c4f1868b0d2e) based on it's overall sentiment. The model (VADER) rates each tweet on a scale of -1 (very negative) to 1 (very posititve). This scale is represented on the vertical axis.
 <!-- Main Visualization -->
 <div class="grid grid-cols-1" style="grid-auto-rows: 630px;">
   <div class="card">${await tweetScatterPlot()}</div>
@@ -61,6 +62,41 @@ async function getTweetData() {
 async function tweetScatterPlot() {
   const { allTweets } = await getTweetData();
 
+  const obamaMonthlyData = d3.rollups(
+    allTweets.filter(d => d.source.toLowerCase() === "obama"),
+    v => d3.mean(v, d => d.compound),
+    d => d3.utcMonth.floor(d.date)
+  ).map(([month, avg]) => ({ month, avg, source: "Obama" }));
+
+  const trumpMonthlyData = d3.rollups(
+    allTweets.filter(d => d.source.toLowerCase() === "trump"),
+    v => d3.mean(v, d => d.compound),
+    d => d3.utcMonth.floor(d.date)
+  ).map(([month, avg]) => ({ month, avg, source: "Trump" }));
+
+
+  function fillMissingMonths(data, startDate, endDate, source) {
+    const months = d3.utcMonths(startDate, endDate);
+    const monthMap = new Map(data.map(d => [d.month.toISOString(), d.avg]));
+    
+    return months.map(month => ({
+      month,
+      avg: monthMap.get(month.toISOString()) || null,
+      source
+    }));
+  }
+
+  // Define the date range based on all tweets
+  const startDate = d3.utcMonth.floor(d3.min(allTweets, d => d.date));
+  const endDate = d3.utcMonth.ceil(d3.max(allTweets, d => d.date));
+
+  // Fill missing months for each source
+  const obamaMonthlyDataFilled = fillMissingMonths(obamaMonthlyData, startDate, endDate, "Obama");
+  const trumpMonthlyDataFilled = fillMissingMonths(trumpMonthlyData, startDate, endDate, "Trump");
+
+  // Combine both datasets
+  const monthlyDataFilled = [...obamaMonthlyDataFilled, ...trumpMonthlyDataFilled];
+
   // Create a tooltip element
   const tooltip = document.createElement("div");
   tooltip.style.position = "absolute";
@@ -82,7 +118,7 @@ async function tweetScatterPlot() {
 
   // Create the scatter plot
   const plot = Plot.plot({
-    width: containerWidth-50, // Add some margin
+    width: containerWidth - 50,
     height: 580,
     marginBottom: 50,
     marginTop: 30,
@@ -96,6 +132,20 @@ async function tweetScatterPlot() {
         y: "compound",
         stroke: "source",
         r: 1.5,
+      }),
+      Plot.line(obamaMonthlyDataFilled, {
+        x: "month",
+        y: "avg",
+        stroke: "white",
+        strokeWidth: 4,
+        curve: "natural",
+      }),
+      Plot.line(trumpMonthlyDataFilled, {
+        x: "month",
+        y: "avg",
+        stroke: "white",
+        strokeWidth: 4,
+        curve: "natural",
       }),
     ],
   });
