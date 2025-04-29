@@ -2,167 +2,151 @@
 toc: false
 ---
 
+<!-- Title -->
 <div class="hero">
   <h1>Reading The Room</h1>
   <h2>subtitle</h2>
 </div>
 
-<div class="grid grid-cols-2" style="grid-auto-rows: 504px;">
-  <div class="card">${
-    resize((width) => Plot.plot({
-      title: "Your awesomeness over time 🚀",
-      subtitle: "Up and to the right!",
-      width,
-      y: {grid: true, label: "Awesomeness"},
-      marks: [
-        Plot.ruleY([0]),
-        Plot.lineY(aapl, {x: "Date", y: "Close", tip: true})
-      ]
-    }))
-  }</div>
-  <div class="card">${
-    resize((width) => Plot.plot({
-      title: "How big are penguins, anyway? 🐧",
-      width,
-      grid: true,
-      x: {label: "Body mass (g)"},
-      y: {label: "Flipper length (mm)"},
-      color: {legend: true},
-      marks: [
-        Plot.linearRegressionY(penguins, {x: "body_mass_g", y: "flipper_length_mm", stroke: "species"}),
-        Plot.dot(penguins, {x: "body_mass_g", y: "flipper_length_mm", stroke: "species", tip: true})
-      ]
-    }))
-  }</div>
+## The following visual shows all of Obama's Tweets during his 2013-2017 term and all of Trump's tweets during his 2017-2021 term.
+<!-- Main Visualization -->
+<div class="grid grid-cols-1" style="grid-auto-rows: 630px;">
+  <div class="card">${await tweetScatterPlot()}</div>
 </div>
 
----
-
-## Next steps
-
-Here are some ideas of things you could try…
-
-<div class="grid grid-cols-4">
+<!-- Data Summary -->
+<div class="grid grid-cols-2">
   <div class="card">
-    Chart your own data using <a href="https://observablehq.com/framework/lib/plot"><code>Plot</code></a> and <a href="https://observablehq.com/framework/files"><code>FileAttachment</code></a>. Make it responsive using <a href="https://observablehq.com/framework/javascript#resize(render)"><code>resize</code></a>.
+    <h2>Obama Tweets</h2>
+    <span class="big">${(await getTweetData()).obamaCount.toLocaleString("en-US")}</span>
+    <p>Average sentiment: ${(await getTweetData()).obamaAvg.toFixed(2)}</p>
   </div>
   <div class="card">
-    Create a <a href="https://observablehq.com/framework/project-structure">new page</a> by adding a Markdown file (<code>whatever.md</code>) to the <code>src</code> folder.
-  </div>
-  <div class="card">
-    Add a drop-down menu using <a href="https://observablehq.com/framework/inputs/select"><code>Inputs.select</code></a> and use it to filter the data shown in a chart.
-  </div>
-  <div class="card">
-    Write a <a href="https://observablehq.com/framework/loaders">data loader</a> that queries a local database or API, generating a data snapshot on build.
-  </div>
-  <div class="card">
-    Import a <a href="https://observablehq.com/framework/imports">recommended library</a> from npm, such as <a href="https://observablehq.com/framework/lib/leaflet">Leaflet</a>, <a href="https://observablehq.com/framework/lib/dot">GraphViz</a>, <a href="https://observablehq.com/framework/lib/tex">TeX</a>, or <a href="https://observablehq.com/framework/lib/duckdb">DuckDB</a>.
-  </div>
-  <div class="card">
-    Ask for help, or share your work or ideas, on our <a href="https://github.com/observablehq/framework/discussions">GitHub discussions</a>.
-  </div>
-  <div class="card">
-    Visit <a href="https://github.com/observablehq/framework">Framework on GitHub</a> and give us a star. Or file an issue if you’ve found a bug!
+    <h2>Trump Tweets</h2>
+    <span class="big">${(await getTweetData()).trumpCount.toLocaleString("en-US")}</span>
+    <p>Average sentiment: ${(await getTweetData()).trumpAvg.toFixed(2)}</p>
   </div>
 </div>
 
-<!-- DASHBOARD -->
-
-# Rocket launches 🚀
-
-<!-- Load and transform the data -->
-
+<!-- JavaScript Section -->
 ```js
-const launches = FileAttachment("data/launches.csv").csv({typed: true});
-```
+async function loadTweets() {
+  const tweets = await FileAttachment("data/final_combined_tweets.csv").csv({typed: true});
+  tweets.forEach(d => {
+    d.date = new Date(d.date);
+    d.tweetUrl = `https://x.com/retrieve/status/${d.id}`;
+    d.formattedDate = d.date.toISOString().split('T')[0];
+  });
+  return tweets;
+}
 
-<!-- A shared color scale for consistency, sorted by the number of launches -->
-
-```js
-const color = Plot.scale({
-  color: {
-    type: "categorical",
-    domain: d3.groupSort(launches, (D) => -D.length, (d) => d.state).filter((d) => d !== "Other"),
-    unknown: "var(--theme-foreground-muted)"
+let tweetDataCache;
+async function getTweetData() {
+  if (!tweetDataCache) {
+    const tweets = await loadTweets();
+    const obamaTweets = tweets.filter(d => d.source.toLowerCase() === "obama");
+    const trumpTweets = tweets.filter(d => d.source.toLowerCase() === "trump");
+    
+    tweetDataCache = {
+      allTweets: tweets,
+      obamaCount: obamaTweets.length,
+      trumpCount: trumpTweets.length,
+      obamaAvg: d3.mean(obamaTweets, d => d.compound) || 0,
+      trumpAvg: d3.mean(trumpTweets, d => d.compound) || 0
+    };
   }
+  return tweetDataCache;
+}
+
+async function tweetScatterPlot() {
+  const { allTweets } = await getTweetData();
+
+  // Create a tooltip element
+  const tooltip = document.createElement("div");
+  tooltip.style.position = "absolute";
+  tooltip.style.background = "white";
+  tooltip.style.border = "1px solid #ccc";
+  tooltip.style.borderRadius = "8px";
+  tooltip.style.padding = "7px";
+  tooltip.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.1)";
+  tooltip.style.fontSize = "14px";
+  tooltip.style.color = "#333";
+  tooltip.style.display = "none";
+  tooltip.style.zIndex = "1000";
+  tooltip.style.pointerEvents = "none";
+  tooltip.style.maxWidth = "300px";
+  document.body.appendChild(tooltip);
+
+  // Get the width of the parent container
+  const containerWidth = document.body.clientWidth; // Adjust to the appropriate parent element if needed
+
+  // Create the scatter plot
+  const plot = Plot.plot({
+    width: containerWidth-50, // Add some margin
+    height: 580,
+    marginBottom: 50,
+    marginTop: 30,
+    y: { grid: true, label: "Sentiment Score", domain: [-1, 1] },
+    x: { label: "Date" },
+    color: { legend: true },
+    marks: [
+      Plot.ruleY([0]),
+      Plot.dot(allTweets, {
+        x: "date",
+        y: "compound",
+        stroke: "source",
+        r: 1.5,
+      }),
+    ],
+  });
+
+  // Append the plot to a container
+  const container = document.createElement("div");
+  container.appendChild(plot);
+  document.body.appendChild(container);
+
+  // Add hover interaction to dots
+const dots = container.querySelectorAll("circle"); // Select all dots
+dots.forEach((dot, i) => {
+  dot.addEventListener("mouseover", (event) => {
+    const tweet = allTweets[i];
+    
+    // Enlarge the dot
+    dot.setAttribute("r", "10"); // Enlarge dot
+    dot.setAttribute("fill", "white"); // Blue for Obama
+
+    // Show tooltip
+    tooltip.innerHTML = `
+      <div style="background: linear-gradient(30deg, var(--theme-foreground-focus), red); padding: 8px; color: white; font-weight: bold; border-radius: 8px 8px 0 0;">
+        ${tweet.source}
+      </div>
+      <div style="padding: 10px;">
+        <p><strong>Date:</strong> ${tweet.formattedDate}</p>
+        <p><strong>Sentiment:</strong> ${tweet.compound.toFixed(2)}</p>
+        <p>${tweet.text}</p>
+      </div>
+    `;
+    tooltip.style.display = "block";
+    tooltip.style.left = `${event.pageX + 10}px`;
+    tooltip.style.top = `${event.pageY + 10}px`;
+  });
+
+  dot.addEventListener("mousemove", (event) => {
+    tooltip.style.left = `${event.pageX + 10}px`;
+    tooltip.style.top = `${event.pageY + 10}px`;
+  });
+
+  dot.addEventListener("mouseout", () => {
+    dot.setAttribute("r", "1.5");
+    tooltip.style.display = "none";
+    dot.setAttribute("fill", "none"); // Reset fill color (based on default color)
+
+  });
 });
-```
 
-<!-- Cards with big numbers -->
-
-<div class="grid grid-cols-4">
-  <div class="card">
-    <h2>United States 🇺🇸</h2>
-    <span class="big">${launches.filter((d) => d.stateId === "US").length.toLocaleString("en-US")}</span>
-  </div>
-  <div class="card">
-    <h2>Russia 🇷🇺 <span class="muted">/ Soviet Union</span></h2>
-    <span class="big">${launches.filter((d) => d.stateId === "SU" || d.stateId === "RU").length.toLocaleString("en-US")}</span>
-  </div>
-  <div class="card">
-    <h2>China 🇨🇳</h2>
-    <span class="big">${launches.filter((d) => d.stateId === "CN").length.toLocaleString("en-US")}</span>
-  </div>
-  <div class="card">
-    <h2>Other</h2>
-    <span class="big">${launches.filter((d) => d.stateId !== "US" && d.stateId !== "SU" && d.stateId !== "RU" && d.stateId !== "CN").length.toLocaleString("en-US")}</span>
-  </div>
-</div>
-
-<!-- Plot of launch history -->
-
-```js
-function launchTimeline(data, {width} = {}) {
-  return Plot.plot({
-    title: "Launches over the years",
-    width,
-    height: 300,
-    y: {grid: true, label: "Launches"},
-    color: {...color, legend: true},
-    marks: [
-      Plot.rectY(data, Plot.binX({y: "count"}, {x: "date", fill: "state", interval: "year", tip: true})),
-      Plot.ruleY([0])
-    ]
-  });
+  return plot;
 }
 ```
-
-<div class="grid grid-cols-1">
-  <div class="card">
-    ${resize((width) => launchTimeline(launches, {width}))}
-  </div>
-</div>
-
-<!-- Plot of launch vehicles -->
-
-```js
-function vehicleChart(data, {width}) {
-  return Plot.plot({
-    title: "Popular launch vehicles",
-    width,
-    height: 300,
-    marginTop: 0,
-    marginLeft: 50,
-    x: {grid: true, label: "Launches"},
-    y: {label: null},
-    color: {...color, legend: true},
-    marks: [
-      Plot.rectX(data, Plot.groupY({x: "count"}, {y: "family", fill: "state", tip: true, sort: {y: "-x"}})),
-      Plot.ruleX([0])
-    ]
-  });
-}
-```
-
-<div class="grid grid-cols-1">
-  <div class="card">
-    ${resize((width) => vehicleChart(launches, {width}))}
-  </div>
-</div>
-
-Data: Jonathan C. McDowell, [General Catalog of Artificial Space Objects](https://planet4589.org/space/gcat)
-
-
 <style>
 
 .hero {
@@ -176,7 +160,7 @@ Data: Jonathan C. McDowell, [General Catalog of Artificial Space Objects](https:
 }
 
 .hero h1 {
-  margin: 1rem 0;
+  margin: 0rem 0;
   padding: 1rem 0;
   max-width: none;
   font-size: 14vw;
@@ -205,3 +189,4 @@ Data: Jonathan C. McDowell, [General Catalog of Artificial Space Objects](https:
 }
 
 </style>
+
