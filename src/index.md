@@ -9,14 +9,15 @@ toc: false
 </div>
 
 ## The following visual shows all of Obama's Tweets during his 2013-2017 term and all of Trump's tweets during his 2017-2021 term.
-Each tweet is classified using [NLP](https://medium.com/@rslavanyageetha/vader-a-comprehensive-guide-to-sentiment-analysis-in-python-c4f1868b0d2e) based on it's overall sentiment. The model (VADER) rates each tweet on a scale of -1 (very negative) to 1 (very posititve). This scale is represented on the vertical axis.
+Each tweet is classified using [NLP](https://medium.com/@rslavanyageetha/vader-a-comprehensive-guide-to-sentiment-analysis-in-python-c4f1868b0d2e) based on its overall sentiment. The model (VADER) rates each tweet on a scale of -1 (very negative) to 1 (very positive). This scale is represented on the vertical axis.
+
 <!-- Main Visualization -->
 <div class="grid grid-cols-1" style="grid-auto-rows: 630px;">
   <div class="card">${await tweetScatterPlot()}</div>
 </div>
 
 <!-- Data Summary -->
-<div class="grid grid-cols-2">
+<div class="grid grid-cols-4">
   <div class="card">
     <h2>Obama Tweets</h2>
     <span class="big">${(await getTweetData()).obamaCount.toLocaleString("en-US")}</span>
@@ -26,6 +27,14 @@ Each tweet is classified using [NLP](https://medium.com/@rslavanyageetha/vader-a
     <h2>Trump Tweets</h2>
     <span class="big">${(await getTweetData()).trumpCount.toLocaleString("en-US")}</span>
     <p>Average sentiment: ${(await getTweetData()).trumpAvg.toFixed(2)}</p>
+  </div>
+  <div class="card">
+    <!-- show/hide events -->
+    show/hide events button
+  </div>
+  <div class="card">
+    <!-- other -->
+    ? data / toggle stock market data / something
   </div>
 </div>
 
@@ -74,7 +83,6 @@ async function tweetScatterPlot() {
     d => d3.utcMonth.floor(d.date)
   ).map(([month, avg]) => ({ month, avg, source: "Trump" }));
 
-
   function fillMissingMonths(data, startDate, endDate, source) {
     const months = d3.utcMonths(startDate, endDate);
     const monthMap = new Map(data.map(d => [d.month.toISOString(), d.avg]));
@@ -114,7 +122,7 @@ async function tweetScatterPlot() {
   document.body.appendChild(tooltip);
 
   // Get the width of the parent container
-  const containerWidth = document.body.clientWidth; // Adjust to the appropriate parent element if needed
+  const containerWidth = document.body.clientWidth;
 
   // Create the scatter plot
   const plot = Plot.plot({
@@ -156,43 +164,42 @@ async function tweetScatterPlot() {
   document.body.appendChild(container);
 
   // Add hover interaction to dots
-const dots = container.querySelectorAll("circle"); // Select all dots
-dots.forEach((dot, i) => {
-  dot.addEventListener("mouseover", (event) => {
-    const tweet = allTweets[i];
-    
-    // Enlarge the dot
-    dot.setAttribute("r", "10"); // Enlarge dot
-    dot.setAttribute("fill", "white"); // Blue for Obama
+  const dots = container.querySelectorAll("circle");
+  dots.forEach((dot, i) => {
+    dot.addEventListener("mouseover", (event) => {
+      const tweet = allTweets[i];
+      
+      // Enlarge the dot
+      dot.setAttribute("r", "10"); 
+      dot.setAttribute("fill", "white"); 
 
-    // Show tooltip
-    tooltip.innerHTML = `
-      <div style="background: linear-gradient(30deg, var(--theme-foreground-focus), red); padding: 8px; color: white; font-weight: bold; border-radius: 8px 8px 0 0;">
-        ${tweet.source}
-      </div>
-      <div style="padding: 10px;">
-        <p><strong>Date:</strong> ${tweet.formattedDate}</p>
-        <p><strong>Sentiment:</strong> ${tweet.compound.toFixed(2)}</p>
-        <p>${tweet.text}</p>
-      </div>
-    `;
-    tooltip.style.display = "block";
-    tooltip.style.left = `${event.pageX + 10}px`;
-    tooltip.style.top = `${event.pageY + 10}px`;
+      // Show tooltip
+      tooltip.innerHTML = `
+        <div style="background: linear-gradient(30deg, var(--theme-foreground-focus), red); padding: 8px; color: white; font-weight: bold; border-radius: 8px 8px 0 0;">
+          ${tweet.source}
+        </div>
+        <div style="padding: 10px;">
+          <p><strong>Date:</strong> ${tweet.formattedDate}</p>
+          <p><strong>Sentiment:</strong> ${tweet.compound.toFixed(2)}</p>
+          <p>${tweet.text}</p>
+        </div>
+      `;
+      tooltip.style.display = "block";
+      tooltip.style.left = `${event.pageX + 10}px`;
+      tooltip.style.top = `${event.pageY + 10}px`;
+    });
+
+    dot.addEventListener("mousemove", (event) => {
+      tooltip.style.left = `${event.pageX + 10}px`;
+      tooltip.style.top = `${event.pageY + 10}px`;
+    });
+
+    dot.addEventListener("mouseout", () => {
+      dot.setAttribute("r", "1.5");
+      tooltip.style.display = "none";
+      dot.setAttribute("fill", "none");
+    });
   });
-
-  dot.addEventListener("mousemove", (event) => {
-    tooltip.style.left = `${event.pageX + 10}px`;
-    tooltip.style.top = `${event.pageY + 10}px`;
-  });
-
-  dot.addEventListener("mouseout", () => {
-    dot.setAttribute("r", "1.5");
-    tooltip.style.display = "none";
-    dot.setAttribute("fill", "none"); // Reset fill color (based on default color)
-
-  });
-});
 
   return plot;
 }
@@ -204,7 +211,7 @@ dots.forEach((dot, i) => {
   flex-direction: column;
   align-items: center;
   font-family: var(--sans-serif);
-  margin: 4rem 0 8rem;
+  margin: 2rem 0 4rem;
   text-wrap: balance;
   text-align: center;
 }
