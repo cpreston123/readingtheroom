@@ -301,7 +301,7 @@ async function tweetScatterPlot() {
     }
     
     const plot = Plot.plot({
-      width: plotContainer.clientWidth - 50,
+      width: Math.max(1400, plotContainer.clientWidth - 50),
       height: 580,
       marginBottom: 50,
       marginTop: 30,
