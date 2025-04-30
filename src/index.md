@@ -39,6 +39,12 @@ toc: false
   </div>
   
 </div>
+
+
+<!-- Tweet Sentiment Analysis -->
+<p class="countryplotmargin"></p>
+<h2>What countries do President's mention most?</h2>
+<p>text text text</p>
 <div class="card" >${tweetTimeline(tweets, events)}</div>
 
 
@@ -468,6 +474,10 @@ async function tweetScatterPlot() {
 
 .event-description{
   color: black;
+}
+
+.countryplotmargin{
+  margin-top:70px;
 }
 
 </style>
