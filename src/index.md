@@ -1,7 +1,6 @@
 ---
 toc: false
 ---
-<!-- test -->
 <!-- Title -->
 <div class="hero">
   <h1>Reading The Room</h1>
