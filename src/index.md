@@ -129,7 +129,6 @@ async function tweetScatterPlot() {
   const { allTweets } = await getTweetData();
   const { allData } = await getApprovalData();
 
-
   const obamaMonthlyData = d3.rollups(
     allTweets.filter(d => d.source.toLowerCase() === "obama"),
     v => d3.mean(v, d => d.compound),
@@ -181,30 +180,32 @@ async function tweetScatterPlot() {
   const obamaMonthlyDataFilled = fillMissingMonths(obamaMonthlyData, startDate, endDate, "Obama");
   const trumpMonthlyDataFilled = fillMissingMonths(trumpMonthlyData, startDate, endDate, "Trump");
 
-  // Combine both datasets
-  const monthlyDataFilled = [...obamaMonthlyDataFilled, ...trumpMonthlyDataFilled];
+  // Create main container
+  const container = document.createElement("div");
+  container.className = "visualization-container";
+  
+  // Create plot container
+  const plotContainer = document.createElement("div");
+  plotContainer.className = "plot-area";
 
-  const obamaApprovalMonthlyFilled = fillMissingMonths(
-    obamaApprovalMonthlyData,
-    d3.min(obamaApprovalMonthlyData, d => d.month),
-    d3.max(obamaApprovalMonthlyData, d => d.month),
-    "Obama"
-  );
+  // Create details panel
+  const detailsPanel = document.createElement("div");
+  detailsPanel.className = "details-panel";
+  detailsPanel.style.display = "none";
+  detailsPanel.innerHTML = `
+    <div class="details-content">
+      <button class="close-button">×</button>
+      <div class="event-details">
+        <h3 id="event-title">Event Title</h3>
+        <p id="event-date" class="event-date">Event Date</p>
+        <p id="event-description">Event description will appear here.</p>
+        <img id="event-image" class="event-image" src="" alt="Event image">
+      </div>
+    </div>
+  `;
 
-  const trumpApprovalMonthlyFilled = fillMissingMonths(
-    trumpApprovalMonthlyData,
-    d3.min(trumpApprovalMonthlyData, d => d.month),
-    d3.max(trumpApprovalMonthlyData, d => d.month),
-    "Trump"
-  );
-
-  const normalizeApproval = data => data.map(d => ({
-    ...d,
-    norm: (d.avg - 30) / 30 - 1
-  }));
-
-const obamaApprovalNorm = normalizeApproval(obamaApprovalMonthlyFilled);
-const trumpApprovalNorm = normalizeApproval(trumpApprovalMonthlyFilled);
+  container.appendChild(plotContainer);
+  container.appendChild(detailsPanel);
 
   // Create a tooltip element
   const tooltip = document.createElement("div");
@@ -222,23 +223,16 @@ const trumpApprovalNorm = normalizeApproval(trumpApprovalMonthlyFilled);
   tooltip.style.maxWidth = "300px";
   document.body.appendChild(tooltip);
 
-  // Get the width of the parent container
-  const containerWidth = document.body.clientWidth;
-
-  // Create a container for the plot
-  const container = document.createElement("div");
-
   // State for whether events are shown
   let showEvents = false;
   
   // Get the toggle button from the DOM
   const toggleButton = document.getElementById("toggleEvents");
   
-    // Function to redraw the plot
   function redrawPlot() {
     // Clear previous plot
-    while (container.children.length > 0) {
-      container.removeChild(container.lastChild);
+    while (plotContainer.firstChild) {
+      plotContainer.removeChild(plotContainer.firstChild);
     }
     
     const marks = [
@@ -266,30 +260,29 @@ const trumpApprovalNorm = normalizeApproval(trumpApprovalMonthlyFilled);
       Plot.axisY({ anchor: "left", label: "Sentiment Score", ticks: 5 }),
     ];
     
-
-  // Add events if toggled on
-  if (showEvents) {
-    marks.push(
-      Plot.dot(eventsData, {
-        x: "date",
-        y: d => d.y,
-        fill: d => {
-          switch(d.type) {
-            case "positive": return "green"; // Green
-            case "negative": return "red"; // Red
-            default: return "gray"; // Gray
-          }
-        },
-        r: 10,
-        stroke: "white",
-        strokeWidth: 2,
-        title: d => `${d.label}\n${d.description}`
-      })
-    );
-  }
+    if (showEvents) {
+      marks.push(
+        Plot.dot(eventsData, {
+          x: "date",
+          y: d => d.y,
+          fill: d => {
+            switch(d.type) {
+              case "positive": return "green";
+              case "negative": return "red";
+              default: return "gray";
+            }
+          },
+          r: 10,
+          stroke: "white",
+          strokeWidth: 2,
+          title: d => `${d.label}\n${d.description}`,
+          style: "cursor: pointer"
+        })
+      );
+    }
     
     const plot = Plot.plot({
-      width: containerWidth - 50,
+      width: plotContainer.clientWidth - 50,
       height: 580,
       marginBottom: 50,
       marginTop: 30,
@@ -303,12 +296,12 @@ const trumpApprovalNorm = normalizeApproval(trumpApprovalMonthlyFilled);
       marks
     });
     
-    container.appendChild(plot);
+    plotContainer.appendChild(plot);
     
-    // Reattach hover events
-    const dots = container.querySelectorAll("circle");
-    dots.forEach((dot, i) => {
-      if (i >= allTweets.length) return;
+    // Reattach hover events for tweets
+    const tweetDots = container.querySelectorAll("circle");
+    tweetDots.forEach((dot, i) => {
+      if (i >= allTweets.length) return; // Skip event dots
       
       dot.addEventListener("mouseover", (event) => {
         const tweet = allTweets[i];
@@ -341,6 +334,36 @@ const trumpApprovalNorm = normalizeApproval(trumpApprovalMonthlyFilled);
         dot.setAttribute("fill", "none");
       });
     });
+    
+    // Add click handlers for event dots
+    if (showEvents) {
+      const eventDots = container.querySelectorAll("circle");
+      eventDots.forEach((dot, i) => {
+        if (i < allTweets.length) return; // Skip tweet dots
+        
+        const eventIndex = i - allTweets.length;
+        if (eventIndex >= eventsData.length) return;
+        
+        const event = eventsData[eventIndex];
+        
+        dot.addEventListener("click", () => {
+          // Update details panel with event information
+          document.getElementById("event-title").textContent = event.label;
+          document.getElementById("event-date").textContent = event.actualDate;
+          document.getElementById("event-description").textContent = event.description;
+          document.getElementById("event-image").src = event.image;
+          
+          // Show the details panel
+          detailsPanel.style.display = "block";
+        });
+      });
+    }
+    
+    // Add close button handler
+    const closeButton = detailsPanel.querySelector(".close-button");
+    closeButton.addEventListener("click", () => {
+      detailsPanel.style.display = "none";
+    });
   }
   
   // Toggle button click handler
@@ -358,61 +381,4 @@ const trumpApprovalNorm = normalizeApproval(trumpApprovalMonthlyFilled);
   return container;
 }
 ```
-
-<style>
-
-.hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-family: var(--sans-serif);
-  margin: 2rem 0 4rem;
-  text-wrap: balance;
-  text-align: center;
-}
-
-.hero h1 {
-  margin: 0rem 0;
-  padding: 1rem 0;
-  max-width: none;
-  font-size: 14vw;
-  font-weight: 900;
-  line-height: 1;
-  background: linear-gradient(30deg, var(--theme-foreground-focus), red);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.hero h2 {
-  margin: 0;
-  max-width: 34em;
-  font-size: 20px;
-  font-style: initial;
-  font-weight: 500;
-  line-height: 1.5;
-  color: var(--theme-foreground-muted);
-}
-
-@media (min-width: 640px) {
-  .hero h1 {
-    font-size: 90px;
-  }
-}
-
-.event-button {
-  padding: 8px 16px;
-  border-radius: 4px;
-  border: none;
-  background-color: var(--theme-foreground-focus);
-  color: white;
-  cursor: pointer;
-  width: 100%;
-  margin-top: 10px;
-}
-
-.event-button:hover {
-  opacity: 0.9;
-}
-
-</style>
+<style> .hero { display: flex; flex-direction: column; align-items: center; font-family: var(--sans-serif); margin: 2rem 0 4rem; text-wrap: balance; text-align: center; } .hero h1 { margin: 0rem 0; padding: 1rem 0; max-width: none; font-size: 14vw; font-weight: 900; line-height: 1; background: linear-gradient(30deg, var(--theme-foreground-focus), red); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; } .hero h2 { margin: 0; max-width: 34em; font-size: 20px; font-style: initial; font-weight: 500; line-height: 1.5; color: var(--theme-foreground-muted); } @media (min-width: 640px) { .hero h1 { font-size: 90px; } } .event-button { padding: 8px 16px; border-radius: 4px; border: none; background-color: var(--theme-foreground-focus); color: white; cursor: pointer; width: 100%; margin-top: 10px; } .event-button:hover { opacity: 0.9; } .visualization-container { display: flex; width: 100%; height: 100%; position: relative; } .plot-area { flex: 1; padding-right: 20px; } .details-panel { width: 300px; background: white; border-left: 1px solid #eee; padding: 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.05); overflow-y: auto; height: 100%; } .details-content { position: relative; height: 100%; } .close-button { position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 20px; cursor: pointer; color: #666; } .close-button:hover { color: #333; } .event-details { margin-top: 20px; } .event-date { color: #666; font-style: italic; margin-bottom: 15px; } .event-image { width: 100%; margin-top: 15px; border-radius: 4px; } </style>
