@@ -30,8 +30,8 @@ toc: false
     <p>Average sentiment: ${(await getTweetData()).trumpAvg.toFixed(2)}</p>
   </div>
   <div class="card">
-    <!-- show/hide events -->
-    show/hide events button
+    <h2>Key Events</h2>
+    <button id="toggleEvents" class="event-button">Show Events</button>
   </div>
   <div class="card">
     <!-- other -->
@@ -108,6 +108,22 @@ async function getApprovalData() {
   }
   return approvalDataCache;
 }
+
+const eventsData = [
+  { 
+    date: "2013-9-07", actualDate: "September 7, 2013", y: 0.08, label: "Negative Event", description: "test neg test", type: "negative", image: "https://example.com/path/to/negative-event.jpg"
+  },
+  { 
+    date: "2014-11-04", actualDate: "November 4, 2014", y: 0.3, label: "Neutral Event", description: "test neu test", type: "neutral", image: "https://example.com/path/to/neutral-event.jpg" 
+  },
+  { 
+    date: "2016-11-08", actualDate: "November 8, 2016", y: -0.2, label: "Positive Event", description: "test pos test", type: "positive", image: "https://example.com/path/to/positive-event.jpg"
+  }
+].map(d => ({
+  ...d,
+  date: new Date(d.date),
+}));
+
 
 async function tweetScatterPlot() {
   const { allTweets } = await getTweetData();
@@ -209,20 +225,23 @@ const trumpApprovalNorm = normalizeApproval(trumpApprovalMonthlyFilled);
   // Get the width of the parent container
   const containerWidth = document.body.clientWidth;
 
-  // Create the scatter plot
-  const plot = Plot.plot({
-    width: containerWidth - 50,
-    height: 580,
-    marginBottom: 50,
-    marginTop: 30,
-    y: { grid: true, label: "Sentiment Score", domain: [-1, 1] },
-    x: { label: "Date" },
-    color: { 
-      legend: true,
-      domain: ["Obama", "Trump", "Average Sentiment"],
-      range: ["rgb(25, 82, 186)", "rgb(237, 164, 27)", "rgb(255, 255, 255)"]
-    },
-    marks: [
+  // Create a container for the plot
+  const container = document.createElement("div");
+
+  // State for whether events are shown
+  let showEvents = false;
+  
+  // Get the toggle button from the DOM
+  const toggleButton = document.getElementById("toggleEvents");
+  
+    // Function to redraw the plot
+  function redrawPlot() {
+    // Clear previous plot
+    while (container.children.length > 0) {
+      container.removeChild(container.lastChild);
+    }
+    
+    const marks = [
       Plot.ruleY([0]),
       Plot.dot(allTweets, {
         x: "date",
@@ -244,68 +263,99 @@ const trumpApprovalNorm = normalizeApproval(trumpApprovalMonthlyFilled);
         strokeWidth: 4,
         curve: "natural",
       }),
-      // Plot.line(obamaApprovalNorm, {
-      //   x: "month",
-      //   y: "norm",
-      //   stroke: "rgb(170, 255, 0)",
-      //   strokeWidth: 4,
-      //   curve: "natural",
-      // }),
-      // Plot.line(trumpApprovalNorm, {
-      //   x: "month",
-      //   y: "norm",
-      //   stroke: "rgb(170, 255, 0)",
-      //   strokeWidth: 4,
-      //   curve: "natural",
-      // }),
       Plot.axisY({ anchor: "left", label: "Sentiment Score", ticks: 5 }),
-    ],
-  });
+    ];
+    
 
-  // Append the plot to a container
-  const container = document.createElement("div");
-  container.appendChild(plot);
-  document.body.appendChild(container);
-
-  // Add hover interaction to dots
-  const dots = container.querySelectorAll("circle");
-  dots.forEach((dot, i) => {
-    dot.addEventListener("mouseover", (event) => {
-      const tweet = allTweets[i];
+  // Add events if toggled on
+  if (showEvents) {
+    marks.push(
+      Plot.dot(eventsData, {
+        x: "date",
+        y: d => d.y,
+        fill: d => {
+          switch(d.type) {
+            case "positive": return "green"; // Green
+            case "negative": return "red"; // Red
+            default: return "gray"; // Gray
+          }
+        },
+        r: 10,
+        stroke: "white",
+        strokeWidth: 2,
+        title: d => `${d.label}\n${d.description}`
+      })
+    );
+  }
+    
+    const plot = Plot.plot({
+      width: containerWidth - 50,
+      height: 580,
+      marginBottom: 50,
+      marginTop: 30,
+      y: { grid: true, label: "Sentiment Score", domain: [-1, 1] },
+      x: { label: "Date" },
+      color: { 
+        legend: true,
+        domain: ["Obama", "Trump", "Average Sentiment"],
+        range: ["rgb(25, 82, 186)", "rgb(237, 164, 27)", "rgb(255, 255, 255)"]
+      },
+      marks
+    });
+    
+    container.appendChild(plot);
+    
+    // Reattach hover events
+    const dots = container.querySelectorAll("circle");
+    dots.forEach((dot, i) => {
+      if (i >= allTweets.length) return;
       
-      // Enlarge the dot
-      dot.setAttribute("r", "10"); 
-      dot.setAttribute("fill", "white"); 
+      dot.addEventListener("mouseover", (event) => {
+        const tweet = allTweets[i];
+        dot.setAttribute("r", "10");
+        dot.setAttribute("fill", "white");
+        
+        tooltip.innerHTML = `
+          <div style="background: linear-gradient(30deg, var(--theme-foreground-focus), red); padding: 8px; color: white; font-weight: bold; border-radius: 8px 8px 0 0;">
+            ${tweet.source}
+          </div>
+          <div style="padding: 10px;">
+            <p><strong>Date:</strong> ${tweet.formattedDate}</p>
+            <p><strong>Sentiment:</strong> ${tweet.compound.toFixed(2)}</p>
+            <p>${tweet.text}</p>
+          </div>
+        `;
+        tooltip.style.display = "block";
+        tooltip.style.left = `${event.pageX + 10}px`;
+        tooltip.style.top = `${event.pageY + 10}px`;
+      });
 
-      // Show tooltip
-      tooltip.innerHTML = `
-        <div style="background: linear-gradient(30deg, var(--theme-foreground-focus), red); padding: 8px; color: white; font-weight: bold; border-radius: 8px 8px 0 0;">
-          ${tweet.source}
-        </div>
-        <div style="padding: 10px;">
-          <p><strong>Date:</strong> ${tweet.formattedDate}</p>
-          <p><strong>Sentiment:</strong> ${tweet.compound.toFixed(2)}</p>
-          <p>${tweet.text}</p>
-        </div>
-      `;
-      tooltip.style.display = "block";
-      tooltip.style.left = `${event.pageX + 10}px`;
-      tooltip.style.top = `${event.pageY + 10}px`;
+      dot.addEventListener("mousemove", (event) => {
+        tooltip.style.left = `${event.pageX + 10}px`;
+        tooltip.style.top = `${event.pageY + 10}px`;
+      });
+
+      dot.addEventListener("mouseout", () => {
+        dot.setAttribute("r", "1.5");
+        tooltip.style.display = "none";
+        dot.setAttribute("fill", "none");
+      });
     });
-
-    dot.addEventListener("mousemove", (event) => {
-      tooltip.style.left = `${event.pageX + 10}px`;
-      tooltip.style.top = `${event.pageY + 10}px`;
+  }
+  
+  // Toggle button click handler
+  if (toggleButton) {
+    toggleButton.addEventListener("click", () => {
+      showEvents = !showEvents;
+      toggleButton.textContent = showEvents ? "Hide Events" : "Show Events";
+      redrawPlot();
     });
-
-    dot.addEventListener("mouseout", () => {
-      dot.setAttribute("r", "1.5");
-      tooltip.style.display = "none";
-      dot.setAttribute("fill", "none");
-    });
-  });
-
-  return plot;
+  }
+  
+  // Initial draw
+  redrawPlot();
+  
+  return container;
 }
 ```
 
@@ -348,6 +398,21 @@ const trumpApprovalNorm = normalizeApproval(trumpApprovalMonthlyFilled);
   .hero h1 {
     font-size: 90px;
   }
+}
+
+.event-button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  background-color: var(--theme-foreground-focus);
+  color: white;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.event-button:hover {
+  opacity: 0.9;
 }
 
 </style>
