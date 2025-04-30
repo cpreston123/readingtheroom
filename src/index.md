@@ -37,10 +37,21 @@ toc: false
     <!-- other -->
     ? data / toggle stock market data / something
   </div>
+  
 </div>
+<div class="card" >${tweetTimeline(tweets, events)}</div>
+
+
+
 
 <!-- JavaScript Section -->
 ```js
+import {tweetTimeline} from "./components/tweettimeline.js";
+
+const tweets = await FileAttachment("data/tweet_mentions_by_month.csv").csv({typed: true});
+const events = await FileAttachment("data/events_political.csv").csv({typed: true});
+
+
 async function loadTweets() {
   const tweets = await FileAttachment("data/final_combined_tweets.csv").csv({typed: true});
   tweets.forEach(d => {
@@ -308,6 +319,8 @@ const trumpApprovalNorm = normalizeApproval(trumpApprovalMonthlyFilled);
 ```
 
 <style>
+
+  document.body.style.overflow = "visible";
 
 .hero {
   display: flex;
