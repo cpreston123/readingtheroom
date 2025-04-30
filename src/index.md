@@ -217,7 +217,11 @@ const trumpApprovalNorm = normalizeApproval(trumpApprovalMonthlyFilled);
     marginTop: 30,
     y: { grid: true, label: "Sentiment Score", domain: [-1, 1] },
     x: { label: "Date" },
-    color: { legend: true },
+    color: { 
+      legend: true,
+      domain: ["Obama", "Trump", "Average Sentiment"],
+      range: ["rgb(25, 82, 186)", "rgb(237, 164, 27)", "rgb(255, 255, 255)"]
+    },
     marks: [
       Plot.ruleY([0]),
       Plot.dot(allTweets, {
@@ -240,22 +244,20 @@ const trumpApprovalNorm = normalizeApproval(trumpApprovalMonthlyFilled);
         strokeWidth: 4,
         curve: "natural",
       }),
-      Plot.line(obamaApprovalNorm, {
-        x: "month",
-        y: "norm",
-        stroke: "rgb(170, 255, 0)",
-        strokeDasharray: "5,5",
-        strokeWidth: 4,
-        curve: "natural",
-      }),
-      Plot.line(trumpApprovalNorm, {
-        x: "month",
-        y: "norm",
-        stroke: "rgb(170, 255, 0)",
-        strokeDasharray: "5,5",
-        strokeWidth: 4,
-        curve: "natural",
-      }),
+      // Plot.line(obamaApprovalNorm, {
+      //   x: "month",
+      //   y: "norm",
+      //   stroke: "rgb(170, 255, 0)",
+      //   strokeWidth: 4,
+      //   curve: "natural",
+      // }),
+      // Plot.line(trumpApprovalNorm, {
+      //   x: "month",
+      //   y: "norm",
+      //   stroke: "rgb(170, 255, 0)",
+      //   strokeWidth: 4,
+      //   curve: "natural",
+      // }),
       Plot.axisY({ anchor: "left", label: "Sentiment Score", ticks: 5 }),
     ],
   });
