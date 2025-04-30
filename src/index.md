@@ -9,8 +9,8 @@ toc: false
 </div>
 
 <!-- Tweet Sentiment Analysis -->
-<h2>Tweet Sentiment Analysis</h2>
-<p>Each tweet is classified using <a href="https://medium.com/@rslavanyageetha/vader-a-comprehensive-guide-to-sentiment-analysis-in-python-c4f1868b0d2e">NLP</a> based on its overall sentiment. The model (VADER) rates each tweet on a scale of -1 (very negative) to 1 (very positive).</p>
+<h1> Tweet Sentiment Analysis 😊😐🙁 </h1>
+<p> Each tweet is classified using <a href="https://medium.com/@rslavanyageetha/vader-a-comprehensive-guide-to-sentiment-analysis-in-python-c4f1868b0d2e">NLP</a> based on its overall sentiment. The model (VADER) rates each tweet on a scale of -1 (very negative) to 1 (very positive). </p>
 
 <!-- Main Visualization -->
 <div class="grid grid-cols-1" style="grid-auto-rows: 650px;">
@@ -32,6 +32,7 @@ toc: false
   <div class="card">
     <h2>Key Events</h2>
     <button id="toggleEvents" class="event-button">Show Events</button>
+    <p>Click on an event to see more details</p>
   </div>
   <div class="card">
     <!-- other -->
@@ -41,10 +42,11 @@ toc: false
 </div>
 
 
-<!-- Tweet Sentiment Analysis -->
+<!-- Country mentions -->
 <p class="countryplotmargin"></p>
-<h2>What countries do President's mention most?</h2>
-<p>text text text</p>
+
+<h1 class="country-heading">What countries do President's mention most? 🌎</h1>
+<p>This analysis examines how frequently U.S. presidents reference foreign nations in their tweets, revealing geopolitical priorities and diplomatic focus areas.</p>
 <div class="card" >${tweetTimeline(tweets, events)}</div>
 
 
@@ -400,7 +402,27 @@ async function tweetScatterPlot() {
   return container;
 }
 ```
-<style> .hero { display: flex; flex-direction: column; align-items: center; font-family: var(--sans-serif); margin: 2rem 0 4rem; text-wrap: balance; text-align: center; } .hero h1 { margin: 0rem 0; padding: 1rem 0; max-width: none; font-size: 14vw; font-weight: 900; line-height: 1; background: linear-gradient(30deg, var(--theme-foreground-focus), red); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; } .hero h2 { margin: 0; max-width: 34em; font-size: 20px; font-style: initial; font-weight: 500; line-height: 1.5; color: var(--theme-foreground-muted); } @media (min-width: 640px) { .hero h1 { font-size: 90px; } } .event-button { padding: 8px 16px; border-radius: 4px; border: none; background-color: var(--theme-foreground-focus); color: white; cursor: pointer; width: 100%; margin-top: 10px; } .event-button:hover { opacity: 0.9; } .visualization-container { display: flex; width: 100%; height: 100%; position: relative; } .plot-area { flex: 1; padding-right: 20px; } .details-panel { width: 300px; background: white; border-left: 1px solid #eee; padding: 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.05); overflow-y: auto; height: 100%; } .details-content { position: relative; height: 100%; } .close-button { position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 20px; cursor: pointer; color: #666; } .close-button:hover { color: #333; } .event-details { margin-top: 20px; } .event-date { color: #666; font-style: italic; margin-bottom: 15px; } .event-image { width: 100%; margin-top: 15px; border-radius: 4px; } 
+<style> .hero { display: flex; flex-direction: column; align-items: center; font-family: var(--sans-serif); margin: 2rem 0 4rem; text-align: center; } 
+
+h1 {
+  white-space: nowrap; /* Prevent wrapping */
+  overflow: visible; /* Allow overflow if needed */
+  text-overflow: clip; /* Don't show ellipsis */
+  max-width: 100%; /* Ensure it can expand */
+}
+
+h2 {
+  white-space: nowrap; /* Prevent wrapping */
+  overflow: visible; /* Allow overflow if needed */
+  text-overflow: clip; /* Don't show ellipsis */
+  max-width: 100%; /* Ensure it can expand */
+}
+
+.hero h1 { margin: 0rem 0; padding: 1rem 0; max-width: none; font-size: 14vw; font-weight: 900; line-height: 1; background: linear-gradient(30deg, var(--theme-foreground-focus), red); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; } 
+
+.hero h2 { margin: 0; max-width: 34em; font-size: 20px; font-style: initial; font-weight: 500; line-height: 1.5; color: var(--theme-foreground-muted); } 
+
+@media (min-width: 640px) { .hero h1 { font-size: 90px; } } .event-button { padding: 8px 16px; border-radius: 4px; border: none; background-color: var(--theme-foreground-focus); color: white; cursor: pointer; width: 100%; margin-top: 10px; } .event-button:hover { opacity: 0.9; } .visualization-container { display: flex; width: 100%; height: 100%; position: relative; } .plot-area { flex: 1; padding-right: 20px; } .details-panel { width: 300px; background: white; border-left: 1px solid #eee; padding: 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.05); overflow-y: auto; height: 100%; } .details-content { position: relative; height: 100%; } .close-button { position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 20px; cursor: pointer; color: #666; } .close-button:hover { color: #333; } .event-details { margin-top: 20px; } .event-date { color: #666; font-style: italic; margin-bottom: 15px; } .event-image { width: 100%; margin-top: 15px; border-radius: 4px; } 
 
 /* Updated CSS for details panel */
 .details-panel {
