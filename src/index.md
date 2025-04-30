@@ -316,8 +316,6 @@ const trumpApprovalNorm = normalizeApproval(trumpApprovalMonthlyFilled);
 
   return plot;
 }
-
-
 ```
 
 <style>
