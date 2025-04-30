@@ -320,8 +320,6 @@ const trumpApprovalNorm = normalizeApproval(trumpApprovalMonthlyFilled);
 
 <style>
 
-  document.body.style.overflow = "visible";
-
 .hero {
   display: flex;
   flex-direction: column;
