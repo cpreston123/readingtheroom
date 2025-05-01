@@ -65,20 +65,6 @@ export function tweetTimeline(tweets, events) {
 
   const defs = svg.append("defs");
 
-  const obamaGradient = defs.append("linearGradient")
-    .attr("id", "obama-gradient")
-    .attr("x1", "0").attr("x2", "1")
-    .attr("y1", "0").attr("y2", "0");
-  obamaGradient.append("stop").attr("offset", "0%").attr("stop-color", "steelblue");
-  obamaGradient.append("stop").attr("offset", "100%").attr("stop-color", "#9ecae1");
-
-  const trumpGradient = defs.append("linearGradient")
-    .attr("id", "trump-gradient")
-    .attr("x1", "0").attr("x2", "1")
-    .attr("y1", "0").attr("y2", "0");
-  trumpGradient.append("stop").attr("offset", "0%").attr("stop-color", "#f5b942");
-  trumpGradient.append("stop").attr("offset", "100%").attr("stop-color", "#ffe4a3");
-
   const g = svg.append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
   left.append(svg.node());
@@ -97,8 +83,13 @@ export function tweetTimeline(tweets, events) {
   left.prepend(resetButton);
 
   const allCountries = Array.from(new Set(tweets.map(d => d.country))).sort();
-  const color = d3.scaleOrdinal().domain(["Obama", "Trump"]).range(["url(#obama-gradient)", "url(#trump-gradient)"]);
-  const fillColor = d3.scaleOrdinal().domain(["Obama", "Trump"]).range(["steelblue", "#f5b942"]);
+  const color = d3.scaleOrdinal()
+  .domain(["Obama", "Trump"])
+  .range(["rgb(25, 82, 186)", "rgb(237, 164, 27)"]);
+
+  const fillColor = d3.scaleOrdinal()
+  .domain(["Obama", "Trump"])
+  .range(["rgba(25, 82, 186, 0.80)", "rgba(237, 164, 27, 0.80)"]);
   const active = { Obama: true, Trump: true };
 
   const x = d3.scaleTime().domain(d3.extent(tweets, d => d.month)).range([0, width]);
