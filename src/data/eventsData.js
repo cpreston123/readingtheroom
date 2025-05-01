@@ -1,0 +1,38 @@
+export const eventsData = [
+    { 
+      date: "2013-9-05", actualDate: "September 7, 2013", y: 0.06, label: "Sarin gas attack near Damascus kills over 1,400 people.", description: "In September 2013, the Assad regime was accused of using sarin gas against civilians in Ghouta, a rebel-held suburb of Damascus. The attack drew widespread international condemnation as a violation of human rights and international law.", type: "negative", image: "https://s.abcnews.com/images/International/AP_syria_shelling_tk_130826_16x9_992.jpg?w=384"
+    },
+    { 
+      date: "2016-12-27", actualDate: "January 20, 2017", y: 0.1, label: "Donald Trump becomes 45th president of the United States.", description: "Donald Trump being sworn in at the Capitol Building, marking a major political shift as he became the first U.S. president without prior military or political experience.", type: "neutral", image: "https://d3i6fh83elv35t.cloudfront.net/static/2025/01/2025-01-20T171551Z_523879963_RC2SDCATM4KG_RTRMADP_3_USA-TRUMP-INAUGURATION-1024x645.jpg" 
+    },
+    { 
+      date: "2018-10-01", actualDate: "September 17, 2018", y: 0.32, label: "U.S. Economic Growth and Syria Diplomacy", description: "In September 2018, the U.S. economy showed strong performance, with unemployment dropping to a near 50-year low of 3.7% and consumer confidence reaching its highest level since 2000. — Meanwhile, a diplomatic agreement between Russia and Turkey established a demilitarized zone in Idlib, Syria, helping avert a large-scale humanitarian crisis. These developments fueled optimistic messaging from President Trump and contributed to an increase in positive tweet sentiment during the month.", type: "positive", image: "https://iadsb.tmgrup.com.tr/b4da94/0/0/0/0/800/534?u=https://idsb.tmgrup.com.tr/2018/09/17/erdogan-putin-agree-on-demilitarized-zone-in-syrias-idlib-1537203299858.jpg"
+    },
+    { 
+      date: "2013-11-10", actualDate: "October-November, 2013", y: 0.30, label: "White House Highlights Affordable Care Act Benefits", description: "Despite technical issues with the HealthCare.gov rollout, the Obama administration increased efforts to promote the long-term benefits of the Affordable Care Act. Messaging emphasized protections for pre-existing conditions and expanded access to coverage, contributing to a more optimistic tone in health care-related tweets. — Additionally, messages honoring Veterans Day and Thanksgiving conveyed gratitude, unity, and national pride.", type: "positive", image: "https://media.npr.org/assets/news/2010/03/23/healthbill-2e74dd4cfdeae5aa54d1bbb32470c0615b826b2b.jpg?s=1100&c=50&f=jpeg"
+    },
+    { 
+      date: "2014-09-01", actualDate: "September 10, 2014", y: 0.04, label: "U.S. Launches Expanded Military Campaign Against ISIL", description: "In response to the growing threat of the Islamic State of Iraq and the Levant (ISIL), President Obama addressed the nation to announce a broad military strategy. The plan included airstrikes in Syria for the first time and increased support for Iraqi forces. This escalation followed ISIL's brutal executions of American journalists James Foley and Steven Sotloff, which shocked the public and contributed to a marked decline in tweet sentiment, reflecting fear, anger, and uncertainty.", type: "negative", image: "https://static01.nyt.com/images/2014/09/12/multimedia/forn-fighters-explainer/forn-fighters-explainer-superJumbo.jpg"
+    },
+    { 
+      date: "2017-09-01", actualDate: "September 2017", y: 0.31, label: "Disaster Relief Efforts and U.N. Address", description: "In the aftermath of Hurricanes Harvey and Irma, President Trump emphasized federal disaster response, praised first responders, and offered messages of support to affected communities. These unifying and compassionate tones boosted positive sentiment in his tweets. — Later that month, Trump delivered his first address to the United Nations General Assembly, promoting U.S. sovereignty and confronting global threats. His confident messaging on the world stage reinforced an overall uptick in optimistic and assertive rhetoric during this period.", type: "positive", image: "https://media-cldnry.s-nbcnews.com/image/upload/t_fit-560w,f_auto,q_auto:best/newscms/2017_38/2159986/170919-trump-united-nations-ga-njs-1024a.jpg"
+    },
+    { 
+      date: "2019-03-20", actualDate: "March 2019", y: 0.03, label: "Mueller Report Summary and House Investigations", description: "In March 2019, President Trump's tweets became increasingly defensive following the Attorney General's summary of findings from the Mueller investigation, which examined Russian interference in the 2016 election and possible obstruction of justice. Although the report cleared him of conspiracy charges, it highlighted potential obstruction, which led to widespread media scrutiny and negative press. — Simultaneously, House Democrats ramped up their investigations into Trump's finances and ties to Russia, contributing to a combative tone in his tweets, with Trump often dismissing the probes as politically motivated 'witch hunts.'", type: "negative", image: "https://media.npr.org/assets/img/2019/05/29/gettyimages-1146867983-cee004043e9932e0bd7a61b9f8bfb50cafbb97e1.jpg?s=1100&c=50&f=jpeg"
+    },
+    {
+      date: "2014-03-11", actualDate: "March 18, 2014", y: 0.20, label: "Russia Annexes Crimea", description: "Russia's annexation of Crimea sparked international condemnation and led to economic sanctions against Russia. The event deeply impacted U.S.-Russia relations and led to a slight decrease in President Obama's tweet sentiment.", type: "negative", image: "https://cdn.britannica.com/67/181467-050-C24A5B8A/soldiers-military-vehicles-Russian-Sevastopol-Ukraine-city-March-1-2014.jpg"
+    },
+      {
+    date: "2015-06-17", actualDate: "June 17, 2015", y: 0.23, label: "Charleston Church Shooting", description: "An anti-Black mass shooting and hate crime occurred at Emanuel AME Church in Charleston, South Carolina, killing nine people during a Bible study. As the oldest Black church in the South, the attack was both a national tragedy and a painful symbol of racial violence, prompting solemn and emotional responses from President Obama and the public.", type: "negative", image: "https://static01.nyt.com/images/2015/06/19/us/19obama/19charleston-blog-obama-superJumbo.jpg"
+    },
+    {
+      date: "2015-07-14", actualDate: "July 14, 2015", y: 0.2, label: "Iran Nuclear Deal Signed", description: "The Joint Comprehensive Plan of Action (JCPOA), known as the Iran nuclear deal, was signed between Iran and six world powers, including the U.S. The agreement, which aimed to limit Iran's nuclear capabilities in exchange for sanctions relief, was a major diplomatic victory for President Obama, resulting in an increase in positive tweets.", type: "positive", image: "https://upload.wikimedia.org/wikipedia/commons/4/4a/Negotiations_about_Iranian_Nuclear_Program_-_the_Ministers_of_Foreign_Affairs_and_Other_Officials_of_the_P5%2B1_and_Ministers_of_Foreign_Affairs_of_Iran_and_EU_in_Lausanne.jpg"
+    },
+    {
+      date: "2016-06-25", actualDate: "June 12, 2016", y: 0.15, label: "Pulse Nightclub Shooting", description: "A mass shooting at Pulse, a gay nightclub in Orlando, Florida, left 49 people dead and 53 wounded in one of the deadliest attacks in U.S. history. The gunman, who pledged allegiance to ISIS, targeted the LGBTQ+ community, sparking national mourning, renewed debates over gun control and terrorism, and a somber response from President Obama.", type: "negative", image: "https://media.npr.org/assets/img/2016/07/19/pulse_custom-3ac9e379b5efb83a6cee7d47078c342db7c5e815.jpg"
+    }
+  ].map(d => ({
+    ...d,
+    date: new Date(d.date),
+  }));
