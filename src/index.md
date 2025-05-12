@@ -12,6 +12,29 @@ toc: false
 <h2>Tweet Sentiment Analysis</h2>
 <p>Each tweet is classified using <a href="https://medium.com/@rslavanyageetha/vader-a-comprehensive-guide-to-sentiment-analysis-in-python-c4f1868b0d2e">NLP</a> based on its overall sentiment. The model (VADER) rates each tweet on a scale of -1 (very negative) to 1 (very positive).</p>
 
+<p style="margin-bottom: 0.5rem; color: var(--theme-foreground-muted); max-width: 1000px;">
+  Use the <span style="color:rgb(80, 135, 230); font-weight: 500;">search bar</span> below to filter tweets by keyword. 
+  Tweets that match your keyword will be <span style="color:rgb(80, 135, 230); font-weight: 500;">highlighted on the graph</span> and listed in the sidebar for deeper exploration. 
+  Below the search bar, you'll also see the <span style="color:rgb(80, 135, 230); font-weight: 500;">top 10 most frequent words</span> from matching tweets — 
+  <span style="color:rgb(80, 135, 230); font-weight: 500;">clicking any of them</span> will instantly trigger a new search for that word.
+</p>
+
+
+<div style="margin-bottom: 1rem;">
+  <label for="wordSearch" style="font-weight: bold; margin-right: 0.5rem;">Search tweets by word:</label>
+  <input type="text" id="wordSearch" placeholder="Enter a keyword..." 
+         style="padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc; width: 250px;" />
+</div>
+
+<div id="top-words-wrapper" style="margin-top: 1rem;">
+  <h4 style="color: white; margin-bottom: 0.5rem;">Top Words:</h4>
+  <div id="top-words-list" style="display: flex; flex-wrap: wrap; gap: 0.5rem;"></div>
+</div>
+
+
+
+
+
 <!-- Main Visualization -->
 <div class="grid grid-cols-1" style="grid-auto-rows: 650px;">
   <div class="card">${await tweetScatterPlot()}</div>
@@ -139,6 +162,30 @@ const eventsData = [
 async function tweetScatterPlot() {
   const { allTweets } = await getTweetData();
   const { allData } = await getApprovalData();
+  let filteredTweets = [...allTweets]; // Default: show all
+  let currentKeyword = "";
+  const searchInput = document.getElementById("wordSearch");
+  let keywordTimeout;
+  searchInput.addEventListener("input", (e) => {
+  const value = e.target.value.toLowerCase().trim();
+  
+  clearTimeout(keywordTimeout);
+  
+  // This is the key change - handle both empty and non-empty cases with the same timing logic
+  keywordTimeout = setTimeout(() => {
+    currentKeyword = value;
+    redrawPlot();
+  }, value === "" ? 0 : 500);
+  });
+
+  searchInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      currentKeyword = e.target.value.toLowerCase().trim();
+      redrawPlot();
+    }
+  });
+
+
 
   const obamaMonthlyData = d3.rollups(
     allTweets.filter(d => d.source.toLowerCase() === "obama"),
@@ -199,6 +246,23 @@ async function tweetScatterPlot() {
   const plotContainer = document.createElement("div");
   plotContainer.className = "plot-area";
 
+  // Create sidebar for keyword search results (initially hidden)
+  const sidebar = document.createElement("div");
+  sidebar.className = "details-panel";  // matches event panel style
+  sidebar.style.display = "none";       // initially hidden
+  document.getElementById("top-words-list").innerHTML = "";
+  sidebar.innerHTML = `
+     <button class="close-button" id="closeSidebar">×</button>
+    <div class="event-info" style="margin: 20px;">
+      <h3 id="keyword-title">Search results</h3>
+      <p id="keyword-summary" class="event-date"></p>
+      <div id="keyword-results"></div>
+    </div>
+  `;
+
+
+
+
   // Create details panel
   const detailsPanel = document.createElement("div");
   detailsPanel.className = "details-panel";
@@ -218,6 +282,7 @@ async function tweetScatterPlot() {
   `;
 
   container.appendChild(plotContainer);
+  container.appendChild(sidebar);
   container.appendChild(detailsPanel);
 
   // Create a tooltip element
@@ -248,14 +313,23 @@ async function tweetScatterPlot() {
       plotContainer.removeChild(plotContainer.firstChild);
     }
     
+    const sidebarWidth = sidebar.style.display === "none" ? 0 : 350; // Use actual sidebar width
+    const availableWidth = plotContainer.clientWidth - 50;
     const marks = [
       Plot.ruleY([0]),
       Plot.dot(allTweets, {
         x: "date",
         y: "compound",
-        stroke: "source",
-        r: 1.5,
+        stroke: "source", // keep stroke consistent
+        strokeOpacity: d =>
+          currentKeyword
+            ? d.text.toLowerCase().includes(currentKeyword) ? 1 : 0.1
+            : 1, // <-- fully visible when no keyword
+        fill: d => currentKeyword && d.text.toLowerCase().includes(currentKeyword) ? "white" : "none",
+        r: d => currentKeyword && d.text.toLowerCase().includes(currentKeyword) ? 6 : 2,
+        title: d => d.text
       }),
+
       Plot.line(obamaMonthlyDataFilled, {
         x: "month",
         y: "avg",
@@ -295,7 +369,7 @@ async function tweetScatterPlot() {
     }
     
     const plot = Plot.plot({
-      width: plotContainer.clientWidth - 50,
+      width: availableWidth,
       height: 580,
       marginBottom: 50,
       marginTop: 30,
@@ -310,6 +384,148 @@ async function tweetScatterPlot() {
     });
     
     plotContainer.appendChild(plot);
+
+    // Apply pulsing animation to matched tweet dots
+    setTimeout(() => {
+      const dots = container.querySelectorAll("circle");
+      dots.forEach((circle) => {
+        const title = circle.getAttribute("title")?.toLowerCase() || "";
+        if (currentKeyword && title.includes(currentKeyword)) {
+          circle.classList.add("pulsating");
+        } else {
+          circle.classList.remove("pulsating");
+        }
+      });
+    }, 0);
+
+
+
+    // Update sidebar with search results
+    sidebar.style.display = currentKeyword ? "block" : "none";
+    const keywordResultsContainer = sidebar.querySelector("#keyword-results");
+    const keywordSummary = sidebar.querySelector("#keyword-summary");
+
+    if (currentKeyword) {
+      detailsPanel.style.display = "none";
+      const matches = allTweets.filter(d => d.text.toLowerCase().includes(currentKeyword));
+      sidebar.style.display = "block";
+      sidebar.style.background = "#1E1E1Eff"
+      keywordSummary.textContent = `${matches.length} tweet(s) matched “${currentKeyword}”`;
+
+      keywordResultsContainer.innerHTML = "";
+      matches.forEach(tweet => {
+          const div = document.createElement("div");
+          div.style.marginBottom = "12px";
+          div.style.color = "white";
+          div.innerHTML = `
+            <p style="margin: 0 0 2px; font-size:18px;" ;"><strong>${tweet.source}</strong> - ${tweet.formattedDate}</p>
+            <p style="margin: 0; font-size:15px;">${tweet.text}</p>
+          `;
+          keywordResultsContainer.appendChild(div);
+      });
+
+      const wordCounts = {};
+      matches.forEach(tweet => {
+        tweet.text
+          .toLowerCase()
+          .replace(/[^\w\s]/g, '') // remove punctuation
+          .split(/\s+/)
+          .forEach(word => {
+          const baseStopWords = new Set([
+            // Common stop words and filler terms
+            "the", "and", "for", "with", "that", "this", "you", "but", "are", "have", "from", "our", "will",
+            "amp", "has", "was", "were", "had", "they", "them", "his", "her", "she", "he", "we", "us", "on",
+            "at", "to", "of", "in", "as", "by", "is", "it", "an", "be", "about", "now", "just", "so", "if",
+            "then", "there", "also", "more", "out", "off", "up", "down", "over", "again", "still", "even",
+
+            // Additional filler/transition words
+            "all", "can", "your", "who", "than", "very", "not", "its", "would", "being", "when", "their", "like", "anyone",
+
+            // Social media handles / noise
+            "realdonaldtrump", "cdcgov", "cbsthismorning", "media", "news",
+
+            // Already captured by sentiment or authorship context
+            "trump", "obama", "biden", "potus", "joe",
+
+            // Vague terms
+            "new", "great", "help", "right", "ever", "between", "since"
+          ]);
+
+          const keywordLower = currentKeyword.toLowerCase();
+          const pluralKeyword = keywordLower.endsWith("s") ? keywordLower.slice(0, -1) : keywordLower + "s";
+
+          // Create a new Set to include the keyword and its plural form
+          const stopWords = new Set([...baseStopWords, keywordLower, pluralKeyword]);
+
+
+
+          if (word.length > 2 && !stopWords.has(word)) {
+              wordCounts[word] = (wordCounts[word] || 0) + 1;
+            }
+          });
+      });
+
+      const topWords = Object.entries(wordCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+
+      const list = document.getElementById("top-words-list");
+        list.innerHTML = "";
+
+        topWords.forEach(([word, count]) => {
+          const box = document.createElement("div");
+          box.textContent = word;
+          box.style.padding = "6px 12px";
+          box.style.background = "#2a2a2a";
+          box.style.color = "#fff";
+          box.style.borderRadius = "20px";
+          box.style.display = "flex";
+          box.style.alignItems = "center";
+          box.style.cursor = "pointer";
+          box.style.fontSize = "14px";
+          box.style.position = "relative";
+
+          const countCircle = document.createElement("span");
+          countCircle.textContent = count;
+          countCircle.style.background = "#666";
+          countCircle.style.borderRadius = "50%";
+          countCircle.style.color = "#fff";
+          countCircle.style.fontSize = "12px";
+          countCircle.style.width = "20px";
+          countCircle.style.height = "20px";
+          countCircle.style.display = "flex";
+          countCircle.style.alignItems = "center";
+          countCircle.style.justifyContent = "center";
+          countCircle.style.marginLeft = "8px";
+
+          box.appendChild(countCircle);
+          box.addEventListener("click", () => {
+            searchInput.value = word;
+            currentKeyword = word;
+            redrawPlot();
+          });
+
+          list.appendChild(box);
+      });
+    } else {
+      sidebar.style.display = "none";
+      document.getElementById("top-words-list").innerHTML = "";
+    }
+
+
+    const closeSidebarBtn = sidebar.querySelector("#closeSidebar");
+      closeSidebarBtn?.addEventListener("click", () => {
+        sidebar.style.display = "none";
+        document.getElementById("top-words-list").innerHTML = "";
+        currentKeyword = "";
+        searchInput.value = "";
+        
+        // Trigger a full redraw after a small delay to ensure the DOM has updated
+        setTimeout(() => {
+          redrawPlot();
+        }, 10);
+    });
+
     
     // Reattach hover events for tweets
     const tweetDots = container.querySelectorAll("circle");
@@ -352,25 +568,29 @@ async function tweetScatterPlot() {
     if (showEvents) {
       const eventDots = container.querySelectorAll("circle");
       eventDots.forEach((dot, i) => {
-        if (i < allTweets.length) return; // Skip tweet dots
-        
+        if (i < allTweets.length) return;
+
         const eventIndex = i - allTweets.length;
         if (eventIndex >= eventsData.length) return;
-        
+
         const event = eventsData[eventIndex];
-        
+
         dot.addEventListener("click", () => {
-          // Update details panel with event information
+          // Hide tweet search sidebar only on actual event click
+          sidebar.style.display = "none";
+          document.getElementById("top-words-list").innerHTML = "";
+          // Populate event details
           document.getElementById("event-title").textContent = event.label;
           document.getElementById("event-date").textContent = event.actualDate;
           document.getElementById("event-description").textContent = event.description;
           document.getElementById("event-image").src = event.image;
-          
-          // Show the details panel
+
+          // Show event sidebar
           detailsPanel.style.display = "block";
         });
       });
     }
+
     
     // Add close button handler
     const closeButton = detailsPanel.querySelector(".close-button");
@@ -390,7 +610,7 @@ async function tweetScatterPlot() {
   
   // Initial draw
   redrawPlot();
-  
+
   return container;
 }
 ```
@@ -405,6 +625,21 @@ async function tweetScatterPlot() {
   overflow-y: auto;
   height: 100%;
   border-radius: 10px;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .close-button {
@@ -453,6 +688,11 @@ async function tweetScatterPlot() {
 
 .event-info {
   margin: 20px;
+}
+
+.pulsating {
+  animation: pulse 1.2s ease-in-out infinite;
+  transform-origin: center;
 }
 
 .event-image {
