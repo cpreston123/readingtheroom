@@ -60,17 +60,13 @@ export function tweetTimeline(tweets, events) {
 
   // Title and description section at the top
   const header = document.createElement("div");
-  header.style.marginBottom = "0.5rem";
   
   const title = document.createElement("h2");
-  title.textContent = "Presidential Tweet Mentions by Country";
-  title.style.margin = "0";
   title.style.color = "#fff";
   title.style.fontSize = "24px";
   title.style.fontWeight = "600";
   
   const description = document.createElement("p");
-  description.textContent = "Explore how often countries were mentioned in tweets by Presidents Obama and Trump over time.";
   description.style.color = "#aaa";
   description.style.fontSize = "15px";
   description.style.margin = "0.5rem 0 0 0";
@@ -309,7 +305,7 @@ export function tweetTimeline(tweets, events) {
   const allCountries = Array.from(new Set(tweets.map(d => d.country))).sort();
   const color = d3.scaleOrdinal()
     .domain(["Obama", "Trump"])
-    .range(["rgb(25, 82, 186)", "rgb(255, 87, 34)"]); // Changed Trump back to orange
+    .range(["rgb(25, 82, 186)", "rgba(237, 164, 27, 0.80)"]); // Changed Trump back to orange
 
   const fillColor = d3.scaleOrdinal()
     .domain(["Obama", "Trump"])
