@@ -305,11 +305,11 @@ export function tweetTimeline(tweets, events) {
   const allCountries = Array.from(new Set(tweets.map(d => d.country))).sort();
   const color = d3.scaleOrdinal()
     .domain(["Obama", "Trump"])
-    .range(["rgb(25, 82, 186)", "rgba(237, 164, 27, 0.80)"]); // Changed Trump back to orange
+    .range(["rgb(25, 82, 186)", "rgba(237, 164, 27, 0.80)"]);
 
   const fillColor = d3.scaleOrdinal()
     .domain(["Obama", "Trump"])
-    .range(["url(#obama-gradient)", "url(#trump-gradient)"]); // Changed Trump to use orange gradient
+    .range(["url(#obama-gradient)", "url(#trump-gradient)"]);
   
   const active = { Obama: true, Trump: true };
 
@@ -573,23 +573,9 @@ export function tweetTimeline(tweets, events) {
 
   // Create a summary table with enhanced design
   const tableDiv = document.createElement("div");
-  Object.assign(tableDiv.style, {
-    position: "absolute",
-    top: "0",
-    right: "-250px",
-    width: "230px",
-    background: "rgba(20,20,20,0.9)",
-    padding: "15px",
-    borderRadius: "8px",
-    border: "1px solid #333",
-    fontSize: "14px",
-    color: "#fff",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
-    maxHeight: "600px",
-    overflowY: "auto",
-    transition: "all 0.3s"
-  });
-  left.appendChild(tableDiv);
+  if (true) { // change to a real condition if needed
+    left.appendChild(tableDiv);
+  }
 
   // IMPROVED: Add stats to the sidebar with optimized rendering
   // Cache for stats to avoid unnecessary re-calculations

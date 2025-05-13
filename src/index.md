@@ -7,16 +7,48 @@ toc: false
   <h2>Exploring the intersection of social media and politics.</h2>
 </div>
 
-<!-- Tweet Sentiment Analysis -->
-<h1> Tweet Sentiment Analysis 😊😐🙁 </h1>
-<p> Each tweet is classified using <a href="https://medium.com/@rslavanyageetha/vader-a-comprehensive-guide-to-sentiment-analysis-in-python-c4f1868b0d2e">NLP</a> based on its overall sentiment. The model (VADER) rates each tweet on a scale of -1 (very negative) to 1 (very positive). </p>
+<div class="image-showcase">
+  <img src="https://media.newyorker.com/photos/590978342179605b11ad889e/master/pass/Cunningham-ObamaandtheCollapseofOurCommonAmericanLanguage2.jpg
+  " class="scroll-img img1" alt="Image 1" />
+  <img src="https://news.uchicago.edu/sites/default/files/styles/full_width/public/images/2022-01/capitol-riot-jan-6.jpg?itok=fNfNJ7TK" class="scroll-img img2" alt="Image 2" />
+  <img src="https://m.media-amazon.com/images/I/71kXH-+B4gL._AC_UF894,1000_QL80_.jpg" class="scroll-img img3" alt="Image 3" />
+  <img src="https://api.time.com/wp-content/uploads/2020/06/best-global-responses-covid-03.jpg" class="scroll-img img4" alt="Image 4" />
+  <img src="https://platform.vox.com/wp-content/uploads/sites/2/chorus/uploads/chorus_asset/file/19859702/1189044734.jpg.jpg?quality=90&strip=all&crop=0%2C0.015827793605567%2C100%2C99.968344412789&w=2400" class="scroll-img img5" alt="Image 5" />
+</div>
 
-<p style="margin-bottom: 0.5rem; color: var(--theme-foreground-muted); max-width: 1000px;">
-  Use the <span style="color:rgb(80, 135, 230); font-weight: 500;">search bar</span> below to filter tweets by keyword. 
-  Tweets that match your keyword will be <span style="color:rgb(80, 135, 230); font-weight: 500;">highlighted on the graph</span> and listed in the sidebar for deeper exploration. 
-  Below the search bar, you'll also see the <span style="color:rgb(80, 135, 230); font-weight: 500;">top 10 most frequent words</span> from matching tweets — 
-  <span style="color:rgb(80, 135, 230); font-weight: 500;">clicking any of them</span> will instantly trigger a new search for that word.
+<div class="halfverticalspace"><div>
+<div class="centeredtext">...<div>
+<div class="halfverticalspace"><div>
+
+<div class="centeredtext">
+  <p>
+    Welcome to <em>Reading the Room</em>, an exploration of how U.S. presidents use Twitter to communicate sentiment and signal geopolitical focus. By analyzing thousands of tweets, we can detect patterns in tone, timing, and messaging. 
+  </p>
+  <p>See our write-up <a href="https://medium.com/@cpp2129/reading-the-room-3d67b0743d53" target="_blank">here</a> and our codebase <a href="https://github.com/cpreston123/readingtheroom" target="_blank">here</a>.
 </p>
+</div>
+
+<div class="centeredtext">...<div>
+<div class="halfverticalspace"><div>
+<div class="halfverticalspace"><div>
+
+<div class="centeredtext">
+  <h1> Tweet Sentiment Analysis 😊😐🙁 </h1>
+</div>
+
+<div class="lefttext">
+  <p> Our analysis focuses on a very large dataset of tweets (over 45,000!). Our dataset contains all of Barack Obama's tweets from his 2013-2017 term and all of Donald Trump's tweets from his 2017-2021 term.
+  
+  We classify each tweet using <a href="https://medium.com/@rslavanyageetha/vader-a-comprehensive-guide-to-sentiment-analysis-in-python-c4f1868b0d2e">NLP</a> based on its overall sentiment. The model (VADER) rates each tweet on a scale of -1 (very negative) to 1 (very positive). </p>
+
+  👉 How to explore:
+  - Use the search bar to filter tweets by keyword (e.g., "Covid", "Russia", "jobs").
+  - Matching tweets are highlighted on the graph and shown in the sidebar.
+  - Below the search bar, the top 10 words from matching tweets appear — click any to start a new search.
+  - You can also toggle event markers to view key political moments by cliking "Show Events." Click on an event dot to see more details.
+</div>
+
+<div class="halfverticalspace"><div>
 
 
 <div style="margin-bottom: 1rem;">
@@ -26,13 +58,8 @@ toc: false
 </div>
 
 <div id="top-words-wrapper" style="margin-top: 1rem;">
-  <h4 style="color: white; margin-bottom: 0.5rem;">Top Words:</h4>
   <div id="top-words-list" style="display: flex; flex-wrap: wrap; gap: 0.5rem;"></div>
 </div>
-
-
-
-
 
 <!-- Main Visualization -->
 <div class="grid grid-cols-1" style="grid-auto-rows: 650px;">
@@ -44,21 +71,18 @@ toc: false
   <div class="card">
     <h2>Obama Tweets</h2>
     <span class="big">${(await getTweetData()).obamaCount.toLocaleString("en-US")}</span>
-    <p>Average sentiment: ${(await getTweetData()).obamaAvg.toFixed(2)}</p>
   </div>
   <div class="card">
     <h2>Trump Tweets</h2>
     <span class="big">${(await getTweetData()).trumpCount.toLocaleString("en-US")}</span>
-    <p>Average sentiment: ${(await getTweetData()).trumpAvg.toFixed(2)}</p>
   </div>
   <div class="card">
-    <h2>Key Events</h2>
+    <h2>Key Events - Click to see more details</h2>
     <button id="toggleEvents" class="event-button">Show Events</button>
-    <p>Click on an event to see more details</p>
   </div>
   <div class="card">
-    <!-- other -->
-    ?
+    <h2>Average Sentiment</h2>
+    <p>Trump: ${(await getTweetData()).trumpAvg.toFixed(2)} &nbsp; &nbsp; &nbsp; Obama: ${(await getTweetData()).obamaAvg.toFixed(2)}</p>
   </div>
   
 </div>
@@ -67,12 +91,28 @@ toc: false
 <!-- Country mentions -->
 <p class="countryplotmargin"></p>
 
-<h1 class="country-heading">What countries do President's mention most? 🌎</h1>
-<p>This analysis examines how frequently U.S. presidents reference foreign nations in their tweets, revealing geopolitical priorities and diplomatic focus areas.</p>
+<div class="centeredtext">
+  <h1 class="country-heading">What countries do President's mention most? 🌎</h1>
+</div>
+
+<div class="lefttext">
+  <p>
+    Our second visualization highlights how often U.S. presidents mentioned foreign countries in their tweets. This offers a window into each administration's diplomatic priorities and areas of geopolitical focus.
+  </p>
+
+  👉 How to explore:
+  - Click on a country from the dropdown to see how frequently it was mentioned by a president over time.
+  - Use the filters above to narrow results by president or year.
+  - The right-hand panel displays background context about U.S. relations with the selected country, as well as quick stats on the number of times the country was mentioned.
+</div>
+
+
 <div class="card" >${tweetTimeline(tweets, events)}</div>
 
-
-
+<div class="centeredtext verticalspace" style="font-size: 16px;">
+  <p>Thanks for exploring <em>Reading the Room</em>. We hope this project has shed light on how presidential communication has evolved in the age of social media — and what it reveals about leadership, tone, and global focus.</p>
+  <p style="margin-top: 1rem;">Created by Chase Preston, Hannah Alborzi, Huda Marta, and Alexander Liu.</p>
+</div>
 
 <!-- JavaScript Section -->
 ```js
@@ -609,7 +649,15 @@ async function tweetScatterPlot() {
   return container;
 }
 ```
-<style> .hero { display: flex; flex-direction: column; align-items: center; font-family: var(--sans-serif); margin: 2rem 0 4rem; text-align: center; } 
+<style> .hero { display: flex; flex-direction: column; align-items: center; margin: 2rem 0 4rem; font-family: var(--sans-serif);text-align: center; } 
+
+.centeredtext { display: flex; flex-direction: column; align-items: center; text-align: center; } 
+
+.lefttext { display: flex; flex-direction: column; align-items: center; text-align: left;} 
+
+.verticalspace { margin: 4rem 0 4rem 0; }
+
+.halfverticalspace { margin: 2rem 0 2rem 0; }
 
 h1 {
   white-space: nowrap; /* Prevent wrapping */
@@ -726,7 +774,66 @@ h2 {
 }
 
 .countryplotmargin{
-  margin-top:70px;
+  margin-top:120px;
 }
+
+.image-showcase {
+    position: relative;
+    height: 700px;
+    margin: 4rem 0;
+  }
+
+  .scroll-img {
+    position: absolute;
+    width: 360px;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    opacity: 0;
+    transform: translateY(40px);
+    animation: fadeInUp 0.9s ease-out forwards;
+  }
+
+  .img1 {
+    top: 40px;
+    left: 10%;
+    transform: rotate(-5deg) translateY(40px);
+    animation-delay: 0.1s;
+  }
+
+  .img2 {
+    top: 140px;
+    left: 35%;
+    transform: rotate(3deg) translateY(40px);
+    animation-delay: 0.5s;
+  }
+
+  .img3 {
+    top: 220px;
+    left: 60%;
+    transform: rotate(-2deg) translateY(40px);
+    animation-delay: 0.9s;
+  }
+
+  .img4 {
+    top: 390px;
+    left: 37%;
+    transform: rotate(-2deg) translateY(40px);
+    animation-delay: 1.3s;
+  }
+
+  .img5 {
+    top: 510px;
+    left: 15%;
+    transform: rotate(-2deg) translateY(40px);
+    animation-delay: 1.7s;
+  }
+
+  @keyframes fadeInUp {
+    to {
+      opacity: 1;
+      transform: rotate(0deg) translateY(0);
+    }
+  }
 
 </style>
