@@ -1,6 +1,7 @@
 ---
 toc: false
 ---
+<link rel="icon" href="data/icon.png" />
 <!-- Title -->
 <div class="hero">
   <h1>Reading The Room</h1>
